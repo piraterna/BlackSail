@@ -5,6 +5,8 @@ add_library(
     bencode.c
 )
 
+set_target_properties(blacksail_lib PROPERTIES OUTPUT_NAME "blacksail")
+
 target_include_directories(
     blacksail_lib
     PUBLIC
