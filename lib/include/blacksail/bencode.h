@@ -36,7 +36,5 @@ struct bencode_dictionary {
 struct bencode_item *blacksail_parse_bencode(const char *ben_str, size_t len);
 
 void blacksail_free_bencode_item(struct bencode_item *item);
-void blacksail_free_bencode_list(struct bencode_list *list);
-void blacksail_free_bencode_dict(struct bencode_dictionary *dict);
 
 #endif /* _BLACKSAIL_BENCODE_H */
