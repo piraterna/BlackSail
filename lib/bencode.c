@@ -4,6 +4,9 @@
 #include <string.h>
 #include <stdio.h>
 
+void blacksail_free_bencode_list(struct bencode_list *list);
+void blacksail_free_bencode_dict(struct bencode_dictionary *dict);
+
 struct bencode_item *blacksail_parse_bencode(const char *ben_str, size_t len)
 {
 	if (ben_str == NULL || len == 0) {
@@ -71,7 +74,7 @@ struct bencode_item *blacksail_parse_bencode(const char *ben_str, size_t len)
 
 			struct bencode_item *ret = malloc(sizeof(struct bencode_item));
 			if (ret == NULL) {
-				return ret;
+				return NULL;
 			}
 
 			ret->type = BEN_INTEGER;
@@ -119,7 +122,7 @@ struct bencode_item *blacksail_parse_bencode(const char *ben_str, size_t len)
 			if (ret == NULL) {
 				blacksail_free_bencode_list(data);
 				free(data);
-				return ret;
+				return NULL;
 			}
 
 			ret->type = BEN_LIST;

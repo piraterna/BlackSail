@@ -33,6 +33,8 @@ struct bencode_dictionary {
 	struct bencode_dictionary *next;
 };
 
+char *hash_sha1(void);
+
 struct bencode_item *blacksail_parse_bencode(const char *ben_str, size_t len);
 
 void blacksail_free_bencode_item(struct bencode_item *item);
