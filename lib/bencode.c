@@ -236,6 +236,61 @@ void blacksail_free_bencode_item(struct bencode_item *item)
 	free(item);
 }
 
+char *blacksail_bencode_find_dvalue_str(struct bencode_dictionary *d, const char *key, size_t *value_size)
+{
+	if (d == NULL || key == NULL) {
+		return NULL;
+	}
+
+	while (d != NULL) {
+		// traverse all dictionaries
+		if (d->val->type == BEN_DICTIONARY) {
+			char *dret = blacksail_bencode_find_dvalue_str(d->val->data, key, value_size);
+			if (dret != NULL) {
+				return dret;
+			}
+		} else if (strncmp((char *)d->key->data, key, d->key->size) == 0) {
+			char *ret = malloc(d->val->size * sizeof(char));
+			if (ret == NULL) {
+				return NULL;
+			}
+
+			if (value_size != NULL) {
+				*value_size = d->val->size;
+			}
+			strncpy(ret, (char *)d->val->data, d->val->size);
+			return ret;
+		}
+
+		d = d->next;
+	}
+
+	return NULL;
+}
+
+size_t blacksail_bencode_find_dvalue_int(struct bencode_dictionary *d, const char *key)
+{
+	if (d == NULL || key == NULL) {
+		return SIZE_MAX;
+	}
+
+	while (d != NULL) {
+		// traverse all dictionaries
+		if (d->val->type == BEN_DICTIONARY) {
+			size_t dret = blacksail_bencode_find_dvalue_int(d->val->data, key);
+			if (dret != SIZE_MAX) {
+				return dret;
+			}
+		} else if (strncmp((char *)d->key->data, key, d->key->size) == 0) {
+			return d->val->size;
+		}
+
+		d = d->next;
+	}
+
+	return SIZE_MAX;
+}
+
 void blacksail_free_bencode_list(struct bencode_list *list)
 {
 	if (list == NULL) {

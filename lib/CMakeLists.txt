@@ -4,6 +4,7 @@ find_package(OpenSSL)
 
 add_library(
     blacksail_lib SHARED
+    torrent.c
     bencode.c
     sha1.c
 )

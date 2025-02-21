@@ -1,13 +1,14 @@
 #ifndef _BLACKSAIL_TORRENT_H
 #define _BLACKSAIL_TORRENT_H
 
+#include <blacksail/bencode.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
 #include <time.h>
 
 enum torrent_encoding {
-	UTF8,
+	TORRENT_ENCODING_UTF8,
 };
 
 enum torrent_status {
@@ -27,34 +28,42 @@ struct torrent_file {
 };
 
 struct torrent {
+	struct bencode_item *bencode;
+
 	const char *name;
 	const char *comment;
 	const char *created_by;
-	const struct tm date_created;
-	const uint8_t encoding;
+	struct tm *date_created;
+	uint8_t encoding;
 	bool is_private;
 
 	bool is_completed;
 	bool is_started;
 
-	const char **trackers;
+	//const char **trackers;
+	const char *trackers;
 
-	const char *download_dir;
+	char *download_dir;
 	struct torrent_file *files;
+
+	uint8_t infohash[20];
+	uint8_t **piece_hashes;
 
 	size_t total_size;	
 	int block_size;
 	int piece_size;
 	int piece_count;
+
 	int verified_piece_count;
-
-	uint8_t infohash[20];
-	uint8_t *piece_hashes[20];
-
 	double verified_ratio;
 
 	size_t uploaded;
 	size_t downloaded;
 };
+
+struct torrent *blacksail_add_torrent_file(const char *torrent_filepath, const char *download_path);
+struct torrent *blacksail_add_torrent(struct bencode_item *bencode, const char *download_path);
+
+void blacksail_remove_torrent(struct torrent *t);
 
 #endif /* _BLACKSAIL_TORRENT_H */
