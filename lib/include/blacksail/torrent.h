@@ -37,8 +37,7 @@ struct torrent {
 	uint8_t encoding;
 	bool is_private;
 
-	bool is_completed;
-	bool is_started;
+	uint8_t status;
 
 	//const char **trackers;
 	const char *trackers;

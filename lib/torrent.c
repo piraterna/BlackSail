@@ -63,8 +63,7 @@ struct torrent *blacksail_add_torrent(struct bencode_item *bencode, const char *
 	free(encoding);
 
 	t->is_private = (blacksail_bencode_find_dvalue_int(bencode->data, "private") == 1) ? true : false;
-	t->is_completed = false;
-	t->is_started = false;
+	t->status = TORRENT_STOPPED;
 
 	t->trackers = blacksail_bencode_find_dvalue_str(bencode->data, "announce", NULL);
 	
