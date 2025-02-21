@@ -28,6 +28,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "%02x", t->infohash[i]);
 	}
 	fprintf(stderr, "\n");
+	fprintf(stderr, "[*] URL-friendly info hash: %s\n", t->infohash_url);
 	fprintf(stderr, "[*] Primary tracker: %s\n", t->trackers);
 	fprintf(stderr, "[*] Total size: %zu MB\n", t->total_size / 1024 / 1024);
 	fprintf(stderr, "[*] Block size: %i KB\n", t->block_size / 1024);
