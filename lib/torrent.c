@@ -73,14 +73,13 @@ struct torrent *blacksail_add_torrent(struct bencode_item *bencode, const char *
 
 	t->files = NULL;
 
-	// FIXME! This is wrong.
 	struct bencode_dictionary *d = (struct bencode_dictionary *)bencode->data;
 	const uint8_t *info_section = NULL;
 	size_t info_size = 0;
 	while (d->next != NULL) {
 		if (strcmp(d->key->data, "info") == 0) {
-			info_section = (uint8_t *)d->val->b_start;
-			info_size = d->val->b_end - d->val->b_start - 1;
+			info_section = (uint8_t *)d->val->b_start - 1;
+			info_size = d->val->b_end - d->val->b_start + 1;
 			break;
 		}
 
