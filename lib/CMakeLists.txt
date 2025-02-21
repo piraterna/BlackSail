@@ -6,7 +6,6 @@ add_library(
     blacksail_lib SHARED
     torrent.c
     bencode.c
-    sha1.c
 )
 
 set_target_properties(blacksail_lib PROPERTIES OUTPUT_NAME "blacksail")

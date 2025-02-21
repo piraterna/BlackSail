@@ -1,6 +1,6 @@
+#include <openssl/sha.h>
 #include <blacksail/torrent.h>
 #include <blacksail/bencode.h>
-#include <sha1.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -27,13 +27,16 @@ struct torrent *blacksail_add_torrent_file(const char *torrent_filepath, const c
 	fread(buf, len, 1, torrent);
 	fclose(torrent);
 
-	struct bencode_item *bencode = blacksail_parse_bencode(buf, len);
-	free(buf);
+	struct bencode_item *bencode = blacksail_parse_bencode((uint8_t *)buf, len);
 	if (bencode == NULL) {
+		free(buf);
 		return NULL;
 	}
 
-	return blacksail_add_torrent(bencode, download_path);
+	struct torrent *ret = blacksail_add_torrent(bencode, download_path);
+	free(buf);
+
+	return ret;
 }
 
 struct torrent *blacksail_add_torrent(struct bencode_item *bencode, const char *download_path)
@@ -70,9 +73,21 @@ struct torrent *blacksail_add_torrent(struct bencode_item *bencode, const char *
 
 	t->files = NULL;
 
-	// TODO: get info hash
-	// -> SHA1 (use hash_sha1(str, size)) all raw bytes of the info bencode section
-	//t->infohash = {0};
+	// FIXME! This is wrong.
+	struct bencode_dictionary *d = (struct bencode_dictionary *)bencode->data;
+	const uint8_t *info_section = NULL;
+	size_t info_size = 0;
+	while (d->next != NULL) {
+		if (strcmp(d->key->data, "info") == 0) {
+			info_section = (uint8_t *)d->val->b_start;
+			info_size = d->val->b_end - d->val->b_start - 1;
+			break;
+		}
+
+		d = d->next;
+	}
+	
+	SHA1(info_section, info_size, t->infohash);
 
 	size_t piece_count = 0;
 	t->piece_hashes = (uint8_t **)blacksail_bencode_find_dvalue_str(bencode->data, "pieces", &piece_count);

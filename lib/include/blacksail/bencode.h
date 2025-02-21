@@ -15,7 +15,8 @@ enum {
 
 struct bencode_item {
 	uint8_t type;
-    const char *b_end;
+	const uint8_t *b_start;
+    const uint8_t *b_end;
     size_t size;
     void *data;
 };
@@ -33,7 +34,7 @@ struct bencode_dictionary {
 	struct bencode_dictionary *next;
 };
 
-struct bencode_item *blacksail_parse_bencode(const char *ben_str, size_t len);
+struct bencode_item *blacksail_parse_bencode(const uint8_t *ben_str, size_t len);
 void blacksail_free_bencode_item(struct bencode_item *item);
 
 char *blacksail_bencode_find_dvalue_str(struct bencode_dictionary *d, const char *key, size_t *value_size);
