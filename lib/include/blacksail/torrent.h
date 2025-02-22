@@ -46,7 +46,7 @@ struct torrent {
 	struct torrent_file *files;
 
 	uint8_t infohash[20];
-	char infohash_url[20 * 3]; // 20 bytes represented by two characters each; each byte is prepended by a percentage sign
+	char infohash_url[20 * 3 + 1];
 	uint8_t **piece_hashes;
 
 	size_t total_size;	

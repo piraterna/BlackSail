@@ -1,10 +1,12 @@
 #include <openssl/sha.h>
+#include <blacksail/blacksail.h>
 #include <blacksail/torrent.h>
 #include <blacksail/bencode.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <ctype.h>
 
 #define TORRENT_BLOCK_SIZE 16384 // 16 KB
 
@@ -87,28 +89,8 @@ struct torrent *blacksail_add_torrent(struct bencode_item *bencode, const char *
 	
 	SHA1(info_section, info_size, t->infohash);
 
-	// convert infohash hex to a URL-friendly string
-	sprintf(t->infohash_url, "%%%X%%%X%%%X%%%X%%%X%%%X%%%X%%%X%%%X%%%X%%%X%%%X%%%X%%%X%%%X%%%X%%%X%%%X%%%X%%%X",
-		t->infohash[0],
-		t->infohash[1],
-		t->infohash[2],
-		t->infohash[3],
-		t->infohash[4],
-		t->infohash[5],
-		t->infohash[6],
-		t->infohash[7],
-		t->infohash[8],
-		t->infohash[9],
-		t->infohash[10],
-		t->infohash[11],
-		t->infohash[12],
-		t->infohash[13],
-		t->infohash[14],
-		t->infohash[15],
-		t->infohash[16],
-		t->infohash[17],
-		t->infohash[18],
-		t->infohash[19]);
+	// convert infohash hex to a URL-friendly string    
+    BYTES_TO_URL(t->infohash, t->infohash_url, 20);
 
 	size_t piece_count = 0;
 	t->piece_hashes = (uint8_t **)blacksail_bencode_find_dvalue_str(bencode->data, "pieces", &piece_count);
