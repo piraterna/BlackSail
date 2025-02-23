@@ -1,4 +1,3 @@
-#include <blacksail/blacksail.h>
 #include <blacksail/torrent.h>
 #include <blacksail/bencode.h>
 #include <torrent_thread.h>
@@ -91,8 +90,8 @@ bool create_torrent_thread(struct torrent *t)
 
 	struct torrent_thread **last = &threads;
 
-	while ((*last)->next != NULL) {
-		*last = (*last)->next;
+	while ((*last) != NULL) {
+		last = &(*last)->next;
 	}
 
 	struct torrent_thread *new = malloc(sizeof(struct torrent_thread));
@@ -101,9 +100,9 @@ bool create_torrent_thread(struct torrent *t)
 	}
 
 	new->id = 0;
-	pthread_create(&new->thread, NULL, thread_update, new);
+	pthread_create(&new->thread, NULL, thread_init, new);
 
-	new->prev = *last;
+	// new->prev = *last;
 	new->next = NULL;
 	new->torrent = t;
 
@@ -113,7 +112,7 @@ bool create_torrent_thread(struct torrent *t)
 		usleep(MS_TO_US(100));
 	}
 
-	(*last)->next = new;
+	(*last) = new;
 
 	next_thread_id++;
 
@@ -206,6 +205,13 @@ void blacksail_remove_all_torrents(void)
 		next = thread->next;
 
 		pthread_kill(thread->thread, THREAD_DIE);
+
+		// wait until the thread clears its ID to let us know
+		// it is dead
+		while (thread->id != 0) {
+			usleep(MS_TO_US(20));
+		}
+
 		remove_torrent(thread->torrent);
 		free(thread);
 

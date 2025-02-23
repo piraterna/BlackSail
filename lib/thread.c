@@ -10,32 +10,37 @@ extern int next_thread_id;
 
 __thread struct torrent_thread *self;
 
+void thread_update(int arg);
+
 void thread_die(int arg)
 {
-	//pthread_cancel();
-	fprintf(stderr, "(%i): Oh no! I should die now!\n", self->id);
-	while (1) {
-		sleep(10);
-	}
+	self->id = 0;
+	pthread_exit(0);
 }
 
-void *thread_update(void *arg)
+void *thread_init(void *arg)
 {
 	self = arg;
 
 	// register signal handlers
 	signal(THREAD_DIE, thread_die);
+	signal(THREAD_UPDATE, thread_update);
 
 	// assign a new id to let the main thread know we're ready to roll
 	self->id = next_thread_id;
 
-	fprintf(stderr, "[*] Hello, I'm a new torrent with ID %i!\n", self->id);
-
 	// update loop
 	while (1) {
-		fprintf(stderr, "(%i): Still alive!\n", self->id);
-		usleep(MS_TO_US(1000));
+		thread_update(0);
+		usleep(MS_TO_US(10000));
 	}
 
 	return NULL;
+}
+
+void thread_update(int arg)
+{
+	//if (cur_time < self->torrent->earliest_interval) {
+	//	return;
+	//}
 }

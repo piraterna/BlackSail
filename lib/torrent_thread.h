@@ -16,6 +16,6 @@ struct torrent_thread {
 	struct torrent_thread *next;
 };
 
-void *thread_update(void *arg);
+void *thread_init(void *arg);
 
 #endif /* _BLACKSAIL_THREAD_H */

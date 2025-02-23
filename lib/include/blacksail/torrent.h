@@ -41,6 +41,7 @@ struct torrent {
 
 	//const char **trackers;
 	const char *trackers;
+	size_t earliest_interval;
 	size_t next_interval;
 
 	char *download_dir;
