@@ -1,0 +1,21 @@
+#ifndef _BLACKSAIL_THREAD_H
+#define _BLACKSAIL_THREAD_H
+
+#include <signal.h>
+#include <pthread.h>
+
+#define THREAD_DIE SIGUSR1
+#define THREAD_UPDATE SIGUSR2
+
+struct torrent_thread {
+	int id;
+	pthread_t thread;
+	struct torrent *torrent;
+
+	struct torrent_thread *prev;
+	struct torrent_thread *next;
+};
+
+void *thread_update(void *arg);
+
+#endif /* _BLACKSAIL_THREAD_H */

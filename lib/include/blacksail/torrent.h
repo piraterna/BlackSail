@@ -41,6 +41,7 @@ struct torrent {
 
 	//const char **trackers;
 	const char *trackers;
+	size_t next_interval;
 
 	char *download_dir;
 	struct torrent_file *files;
@@ -61,9 +62,9 @@ struct torrent {
 	size_t downloaded;
 };
 
-struct torrent *blacksail_add_torrent_file(const char *torrent_filepath, const char *download_path);
-struct torrent *blacksail_add_torrent(struct bencode_item *bencode, const char *download_path);
+int blacksail_add_torrentf(const char *torrent_filepath, const char *download_path);
 
-void blacksail_remove_torrent(struct torrent *t);
+void blacksail_remove_torrent(int id);
+void blacksail_remove_all_torrents(void);
 
 #endif /* _BLACKSAIL_TORRENT_H */

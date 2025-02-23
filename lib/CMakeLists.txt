@@ -5,8 +5,10 @@ find_package(CURL)
 
 add_library(
     blacksail_lib SHARED
-    torrent.c
     bencode.c
+    torrent.c
+    tracker.c
+    thread.c
 )
 
 set_target_properties(blacksail_lib PROPERTIES OUTPUT_NAME "blacksail")
