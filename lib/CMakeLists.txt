@@ -6,6 +6,8 @@ find_package(CURL)
 add_library(
     blacksail_lib SHARED
     bencode.c
+    config.c
+    init.c
     torrent.c
     tracker.c
     thread.c

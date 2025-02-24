@@ -2,15 +2,10 @@
 #define _BLACKSAIL_TRACKER_H
 
 #include <blacksail/torrent.h>
+#include <pthread.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <time.h>
-
-enum tracker_event {
-	Started,
-	Paused,
-	Stopped
-};
 
 struct tracker_response {
 	size_t seeder_count;
@@ -23,6 +18,6 @@ struct tracker_response {
 	uint8_t *peers;
 };
 
-struct tracker_response *blacksail_announce_torrent(struct torrent *t);
+struct tracker_response *blacksail_announce_torrent(struct torrent *t, pthread_mutex_t *tmut);
 
 #endif /* _BLACKSAIL_TRACKER_H */

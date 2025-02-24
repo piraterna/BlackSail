@@ -14,4 +14,7 @@
 #define BLACKSAIL_TORRENTS_PER_THREAD 5
 #endif
 
+void blacksail_init(void);
+void blacksail_shutdown(void);
+
 #endif /* _BLACKSAIL_H */

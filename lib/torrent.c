@@ -27,7 +27,7 @@ struct torrent *add_torrent(struct bencode_item *bencode, const char *download_p
 	}
 	
 	// set initial values
-	t->id = next_torrent_id;
+	t->id = next_torrent_id++;
 	t->bencode = bencode;
 	t->name = blacksail_bencode_find_dvalue_str(bencode->data, "name", NULL);
 	t->comment = blacksail_bencode_find_dvalue_str(bencode->data, "comment", NULL);
@@ -44,7 +44,7 @@ struct torrent *add_torrent(struct bencode_item *bencode, const char *download_p
 	free(encoding);
 
 	t->is_private = (blacksail_bencode_find_dvalue_int(bencode->data, "private") == 1) ? true : false;
-	t->status = TORRENT_STOPPED;
+	t->status = TORRENT_STARTED;
 
 	t->trackers = blacksail_bencode_find_dvalue_str(bencode->data, "announce", NULL);
 	
@@ -82,7 +82,6 @@ struct torrent *add_torrent(struct bencode_item *bencode, const char *download_p
 	t->verified_piece_count = 0;
 	t->verified_ratio = 0.00;
 
-	next_torrent_id++;
 	return t;
 }
 
@@ -103,6 +102,7 @@ bool create_torrent_thread(struct torrent *t)
 		return false;
 	}
 
+
 	new->id = 0;
 	pthread_create(&new->thread, NULL, thread_init, new);
 
@@ -118,8 +118,6 @@ bool create_torrent_thread(struct torrent *t)
 
 	(*last) = new;
 
-	next_thread_id++;
-
 	return true;
 }
 
@@ -128,17 +126,6 @@ void remove_torrent(struct torrent *t)
 	blacksail_free_bencode_item(t->bencode);
 	free(t->download_dir);
 	free(t);
-}
-
-bool blacksail_initialize(void)
-{
-	threads = malloc(sizeof(struct torrent_thread));
-	if (threads == NULL) {
-		return false;
-	}
-
-	memset(threads, 0, sizeof(struct torrent_thread));
-	return true;
 }
 
 int blacksail_add_torrentf(const char *torrent_filepath, const char *download_path)

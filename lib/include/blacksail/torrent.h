@@ -2,6 +2,7 @@
 #define _BLACKSAIL_TORRENT_H
 
 #include <blacksail/bencode.h>
+#include <blacksail/peer.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
@@ -42,8 +43,10 @@ struct torrent {
 
 	//const char **trackers;
 	const char *trackers;
-	size_t earliest_interval;
+	size_t min_interval;
 	size_t next_interval;
+
+	struct peer **peers;
 
 	char *download_dir;
 	struct torrent_file *files;
