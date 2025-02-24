@@ -1,3 +1,4 @@
+#include <blacksail/blacksail.h>
 #include <blacksail/torrent.h>
 #include <blacksail/bencode.h>
 #include <torrent_thread.h>
@@ -15,6 +16,7 @@
 #define TORRENT_BLOCK_SIZE 16384 // 16 KB
 
 struct torrent_thread *threads = NULL;
+int next_torrent_id = 1; // 0 is reserved
 int next_thread_id = 1; // 0 is reserved
 
 struct torrent *add_torrent(struct bencode_item *bencode, const char *download_path)
@@ -25,6 +27,7 @@ struct torrent *add_torrent(struct bencode_item *bencode, const char *download_p
 	}
 	
 	// set initial values
+	t->id = next_torrent_id;
 	t->bencode = bencode;
 	t->name = blacksail_bencode_find_dvalue_str(bencode->data, "name", NULL);
 	t->comment = blacksail_bencode_find_dvalue_str(bencode->data, "comment", NULL);
@@ -79,6 +82,7 @@ struct torrent *add_torrent(struct bencode_item *bencode, const char *download_p
 	t->verified_piece_count = 0;
 	t->verified_ratio = 0.00;
 
+	next_torrent_id++;
 	return t;
 }
 
@@ -104,12 +108,12 @@ bool create_torrent_thread(struct torrent *t)
 
 	// new->prev = *last;
 	new->next = NULL;
-	new->torrent = t;
+	new->torrent[0] = t;
 
 	// wait until the new thread sets the new id itself to indicate
 	// it's ready to start
 	while (new->id == 0) {
-		usleep(MS_TO_US(100));
+		usleep(MS_TO_US(20));
 	}
 
 	(*last) = new;
@@ -165,20 +169,58 @@ int blacksail_add_torrentf(const char *torrent_filepath, const char *download_pa
 	struct torrent *t = add_torrent(bencode, download_path);
 	free(buf);
 
+	// look if there's a free thread
+	struct torrent_thread *cur = threads;
+	while (cur != NULL) {
+		for (int i = 0; i < BLACKSAIL_TORRENTS_PER_THREAD; i++) {
+			if (cur->torrent[i] == NULL) {
+				fprintf(stderr, "Found a free thread, joining the torrent and telling the thread.\n");
+				cur->torrent[i] = t;
+				pthread_kill(cur->thread, THREAD_UPDATE);
+				// wait until the thread registered the new torrent.
+				while (cur->torrent[i]->id == 0) {
+					usleep(MS_TO_US(20));
+				}
+				return t->id;
+			}
+		}
+
+		cur = cur->next;
+	}
+
+	// no free thread found, create one
+	fprintf(stderr, "No free thread found, creating a new one.\n");
 	int id = create_torrent_thread(t);
 	if (id == 0) {
 		remove_torrent(t);
 	}
 
-	return id;
+	return t->id;
 }
 
 void blacksail_remove_torrent(int id)
 {
 	struct torrent_thread *thread = threads;
 	while (thread != NULL) {
-		if (thread->id == id) {
-			fprintf(stderr, "Attempting to kill torrent with ID %i\n", id);
+		for (int i = 0; i < BLACKSAIL_TORRENTS_PER_THREAD; i++) {
+			if (thread->torrent[i] == NULL)
+				continue;
+
+			if (thread->torrent[i]->id == id) {
+				fprintf(stderr, "Attempting to kill torrent with ID %i\n", id);
+				remove_torrent(thread->torrent[i]);
+				thread->torrent[i] = NULL;
+				break;
+			}
+
+		}
+
+		// is this the last torrent in a thread?
+		for (int i = 0; i < BLACKSAIL_TORRENTS_PER_THREAD; i++) {
+			if (thread->torrent[i])
+				break;
+
+			fprintf(stderr, "No torrents in thread ID %i, killing...\n", thread->id);
 			pthread_kill(thread->thread, THREAD_DIE);
 
 			if (thread->prev != NULL) {
@@ -186,9 +228,8 @@ void blacksail_remove_torrent(int id)
 			}
 			thread->next->prev = thread->prev;
 
-			remove_torrent(thread->torrent);
 			free(thread);
-			break;
+			return;
 		}
 
 		thread = thread->next;
@@ -201,7 +242,14 @@ void blacksail_remove_all_torrents(void)
 	struct torrent_thread *next;
 
 	while (thread != NULL) {
-		fprintf(stderr, "Attempting to kill torrent with ID %i\n", thread->id);
+		for (int i = 0; i < BLACKSAIL_TORRENTS_PER_THREAD; i++) {
+			if (thread->torrent[i] == NULL)
+				continue;
+
+			fprintf(stderr, "Removing torrent with ID %i\n", thread->torrent[i]->id);
+			remove_torrent(thread->torrent[i]);
+		}
+
 		next = thread->next;
 
 		pthread_kill(thread->thread, THREAD_DIE);
@@ -212,7 +260,6 @@ void blacksail_remove_all_torrents(void)
 			usleep(MS_TO_US(20));
 		}
 
-		remove_torrent(thread->torrent);
 		free(thread);
 
 		thread = next;

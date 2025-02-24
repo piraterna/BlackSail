@@ -29,6 +29,7 @@ struct torrent_file {
 
 struct torrent {
 	struct bencode_item *bencode;
+	int id;
 
 	const char *name;
 	const char *comment;

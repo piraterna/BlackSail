@@ -1,5 +1,6 @@
 #include <blacksail/torrent.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 int main(int argc, char **argv)
@@ -15,7 +16,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "[!] Failed to add a new torrent!\n");
 	}
 
-	sleep(2);
+	sleep(30);
 
 	blacksail_remove_all_torrents();
 	return 0;

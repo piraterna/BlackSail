@@ -1,5 +1,7 @@
 # -*- mode: gitignore; -*-
 
+test/
+
 **/.DS_Store
 .idea/
 .vs/

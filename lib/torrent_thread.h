@@ -1,6 +1,7 @@
 #ifndef _BLACKSAIL_THREAD_H
 #define _BLACKSAIL_THREAD_H
 
+#include <blacksail/blacksail.h>
 #include <signal.h>
 #include <pthread.h>
 
@@ -10,7 +11,7 @@
 struct torrent_thread {
 	int id;
 	pthread_t thread;
-	struct torrent *torrent;
+	struct torrent *torrent[BLACKSAIL_TORRENTS_PER_THREAD];
 
 	struct torrent_thread *prev;
 	struct torrent_thread *next;

@@ -17,6 +17,7 @@ struct bencode_item *blacksail_parse_bencode(const uint8_t *ben_str, size_t len)
 	const uint8_t *end = ben_str + len;
 	const uint8_t *str = (const uint8_t *)ben_str + 1;
 
+
 	switch (start) {
 		// BEN_STRING
 		case '0' ... '9': {
