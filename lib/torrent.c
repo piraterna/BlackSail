@@ -113,7 +113,7 @@ bool create_torrent_thread(struct torrent *t)
 	// wait until the new thread sets the new id itself to indicate
 	// it's ready to start
 	while (new->id == 0) {
-		usleep(MS_TO_US(20));
+		usleep(MSEC_TO_USEC(20));
 	}
 
 	(*last) = new;
@@ -125,6 +125,12 @@ void remove_torrent(struct torrent *t)
 {
 	blacksail_free_bencode_item(t->bencode);
 	free(t->download_dir);
+
+	for (int i = 0; i < t->peer_count; i++) {
+		free(t->peers[i].ip);
+	}
+	
+	free(t->peers);
 	free(t);
 }
 
@@ -166,7 +172,7 @@ int blacksail_add_torrentf(const char *torrent_filepath, const char *download_pa
 				pthread_kill(cur->thread, THREAD_UPDATE);
 				// wait until the thread registered the new torrent.
 				while (cur->torrent[i]->id == 0) {
-					usleep(MS_TO_US(20));
+					usleep(MSEC_TO_USEC(20));
 				}
 				return t->id;
 			}
@@ -244,7 +250,7 @@ void blacksail_remove_all_torrents(void)
 		// wait until the thread clears its ID to let us know
 		// it is dead
 		while (thread->id != 0) {
-			usleep(MS_TO_US(20));
+			usleep(MSEC_TO_USEC(20));
 		}
 
 		free(thread);

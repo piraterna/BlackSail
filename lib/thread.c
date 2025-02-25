@@ -57,7 +57,20 @@ void *thread_init(void *arg)
 		thread_announce_torrents();
 
 		// calculate time until next interval
-		usleep(MS_TO_US(2000));
+		size_t earliest_interval = 0;
+
+		for (int i = 0; i < BLACKSAIL_TORRENTS_PER_THREAD; i++) {
+			struct torrent *t = self->torrent[i];
+			if (t == NULL || t->id == 0) {
+				continue;
+			}
+
+			if (t->next_interval > earliest_interval) {
+				earliest_interval = t->next_interval;
+			}
+		}
+		fprintf(stderr, "Sleeping for %zu seconds...\n", earliest_interval);
+		usleep(SEC_TO_USEC(earliest_interval));
 	}
 
 	return NULL;

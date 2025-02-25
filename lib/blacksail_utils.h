@@ -29,6 +29,11 @@
 /*
  * Converts milliseconds to microseconds.
  */
-#define MS_TO_US(x) ((x) * 1000)
+#define MSEC_TO_USEC(x) ((x) * 1000)
+
+/*
+ * Converts seconds to microseconds.
+ */
+#define SEC_TO_USEC(x) ((x) * 1000000)
 
 #endif /* _BLACKSAIL_UTILS_H */

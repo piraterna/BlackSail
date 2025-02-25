@@ -46,7 +46,8 @@ struct torrent {
 	size_t min_interval;
 	size_t next_interval;
 
-	struct peer **peers;
+	struct peer *peers;
+	size_t peer_count;
 
 	char *download_dir;
 	struct torrent_file *files;

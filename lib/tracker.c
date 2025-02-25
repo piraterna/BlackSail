@@ -77,8 +77,25 @@ struct tracker_response *blacksail_announce_torrent(struct torrent *t, pthread_m
 		goto end;
 	}
 
-	t->min_interval = time(NULL) + min_interval;
-	t->next_interval = time(NULL) + interval;
+	t->peers = (struct peer *)malloc((peerlist_size / 6) * sizeof(struct peer));
+	t->peer_count = peerlist_size / 6;
+
+	for (int i = 0; i < peerlist_size / 6; i++) {
+		if (asprintf(&t->peers[i].ip, "%d.%d.%d.%d",
+            ((uint8_t *)peers)[6 * i + 0],
+            ((uint8_t *)peers)[6 * i + 1],
+            ((uint8_t *)peers)[6 * i + 2],
+            ((uint8_t *)peers)[6 * i + 3]) > 16) {
+        	goto end;
+    	}
+
+		t->peers[i].port = 256 * ((uint8_t *)peers)[6 * i + 4] + ((uint8_t *)peers)[6 * i + 5];
+		// this sometimes yields 0.0.0.0:0, I don't know why.
+		fprintf(stderr, "Found peer: %s:%u\n", t->peers[i].ip, t->peers[i].port);
+	}
+
+	t->min_interval = min_interval;
+	t->next_interval = interval;
 
 end:
 	buffer.size = 0;
