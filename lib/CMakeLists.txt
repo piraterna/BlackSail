@@ -8,9 +8,9 @@ add_library(
     bencode.c
     config.c
     init.c
+    peer.c
     torrent.c
     tracker.c
-    thread.c
 )
 
 set_target_properties(blacksail_lib PROPERTIES OUTPUT_NAME "blacksail")

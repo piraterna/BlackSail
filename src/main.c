@@ -1,5 +1,6 @@
 #include <blacksail/blacksail.h>
 #include <blacksail/torrent.h>
+#include <blacksail/tracker.h>
 #include <blacksail/config.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,11 +27,14 @@ int main(int argc, char **argv)
 
 	blacksail_init();
 
-	if (!blacksail_add_torrentf(argv[1], "")) {
+	struct torrent *t = blacksail_add_torrentf(argv[1], "");
+	if (!t) {
 		fprintf(stderr, "[!] Failed to add a new torrent!\n");
 	}
 
-	sleep(30);
+	if (!blacksail_announce_torrent(t)) {
+		fprintf(stderr, "[!] Failed to announce torrent!\n");
+	}
 
 	blacksail_shutdown();
 	return 0;

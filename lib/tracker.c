@@ -5,9 +5,9 @@
 #include <blacksail/config.h>
 #include <curl/curl.h>
 #include <curl_buffer.h>
-#include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 
 extern struct blacksail_config cfg;
@@ -15,6 +15,8 @@ extern struct blacksail_config cfg;
 CURL *curl = NULL;
 
 struct curl_buffer buffer;
+
+extern char *build_handshake(struct torrent *t, char *peer_id);
 
 size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp)
 {
@@ -34,13 +36,11 @@ size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp)
     return realsize;
 }
 
-struct tracker_response *blacksail_announce_torrent(struct torrent *t, pthread_mutex_t *tmut)
+bool blacksail_announce_torrent(struct torrent *t)
 {
-	if (t == NULL || tmut == NULL || curl == NULL) {
-		return NULL;
+	if (t == NULL || curl == NULL) {
+		return false;
 	}
-
-	pthread_mutex_lock(tmut);
 
 	// construct the announce URL
 	char *get_url;
@@ -57,10 +57,12 @@ struct tracker_response *blacksail_announce_torrent(struct torrent *t, pthread_m
 	free(get_url);
 
 	struct bencode_item *bencode = blacksail_parse_bencode((const uint8_t *)buffer.buf, buffer.size);
+	buffer.size = 0;
+
 	struct bencode_dictionary *dict = bencode->type == BEN_DICTIONARY ? bencode->data : NULL;
 	if (dict == NULL) {
 		// there's nothing we can do
-		goto end;
+		return false;
 	}
 
 	int min_interval = blacksail_bencode_find_dvalue_int(dict, "min interval");
@@ -73,8 +75,8 @@ struct tracker_response *blacksail_announce_torrent(struct torrent *t, pthread_m
 	char *peers = blacksail_bencode_find_dvalue_str(dict, "peers", &peerlist_size);
 
 	if (peerlist_size % 6 != 0) {
-		// ??? tracker bad
-		goto end;
+		// ??? tracker bad (or ipv6)
+		return false;
 	}
 
 	t->peers = (struct peer *)malloc((peerlist_size / 6) * sizeof(struct peer));
@@ -86,20 +88,15 @@ struct tracker_response *blacksail_announce_torrent(struct torrent *t, pthread_m
             ((uint8_t *)peers)[6 * i + 1],
             ((uint8_t *)peers)[6 * i + 2],
             ((uint8_t *)peers)[6 * i + 3]) > 16) {
-        	goto end;
+        	return false;
     	}
 
 		t->peers[i].port = 256 * ((uint8_t *)peers)[6 * i + 4] + ((uint8_t *)peers)[6 * i + 5];
-		// this sometimes yields 0.0.0.0:0, I don't know why.
-		fprintf(stderr, "Found peer: %s:%u\n", t->peers[i].ip, t->peers[i].port);
 	}
 
 	t->min_interval = min_interval;
 	t->next_interval = interval;
+	build_handshake(t, "qwertyuiopasdfghjklz");
 
-end:
-	buffer.size = 0;
-	pthread_mutex_unlock(tmut);
-
-	return NULL;
+	return true;
 }

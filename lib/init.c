@@ -26,8 +26,6 @@ void blacksail_init(void)
 
 void blacksail_shutdown(void)
 {
-	blacksail_remove_all_torrents();
-
 	free(buffer.buf);
 	curl_easy_cleanup(curl);
 	curl_global_cleanup();
