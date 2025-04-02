@@ -1,5 +1,7 @@
 # BlackSail
 
+*Note: BlackSail is not a finished product, its a work in progress project*
+
 BlackSail is a small BitTorrent client you can run in your terminal!
 
 ## LibBlackSail
