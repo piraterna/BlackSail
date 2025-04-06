@@ -36,6 +36,10 @@ int main(int argc, char **argv)
 		fprintf(stderr, "[!] Failed to announce torrent!\n");
 	}
 
+	if (!blacksail_download_from_peer(t, 0)) {
+		fprintf(stderr, "[!] Failed to download torrent!\n");
+	}
+
 	blacksail_shutdown();
 	return 0;
 }

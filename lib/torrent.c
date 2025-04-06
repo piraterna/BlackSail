@@ -1,7 +1,9 @@
 #include <blacksail/blacksail.h>
+#include <blacksail/config.h>
 #include <blacksail/torrent.h>
 #include <blacksail/bencode.h>
 #include <blacksail_utils.h>
+#include <peer.h>
 #include <openssl/sha.h>
 #include <pthread.h>
 #include <signal.h>
@@ -121,4 +123,23 @@ void blacksail_remove_torrent(struct torrent *t)
 	
 	free(t->peers);
 	free(t);
+}
+
+extern struct blacksail_config cfg;
+
+bool blacksail_download_from_peer(struct torrent *t, int peer_idx)
+{
+	if (!t)
+		return false;
+
+	if (peer_idx >= t->peer_count)
+		return false;
+
+	const char *handshake = build_handshake(t, cfg.peer_id);
+
+	if (!send_handshake(&t->peers[peer_idx], handshake)) {
+		return false;
+	}
+
+	return true;
 }

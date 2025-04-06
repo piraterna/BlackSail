@@ -44,14 +44,16 @@ bool blacksail_announce_torrent(struct torrent *t)
 
 	// construct the announce URL
 	char *get_url;
-	asprintf(&get_url, "%s?info_hash=%s&peer_id=%s&port=%u&uploaded=%zu&downloaded=%zu&left=%zu&compact=1",
-		t->trackers, t->infohash_url, cfg.client_id, cfg.port, t->uploaded, t->downloaded, t->total_size - t->downloaded);
+	asprintf(&get_url, "%s?info_hash=%s&peer_id=%.*s&port=%u&uploaded=%zu&downloaded=%zu&left=%zu&compact=1",
+		t->trackers, t->infohash_url, 20, cfg.client_id, cfg.port, t->uploaded, t->downloaded, t->total_size - t->downloaded);
 	
 	curl_easy_setopt(curl, CURLOPT_URL, get_url);
 
 	CURLcode res;
 	if ((res = curl_easy_perform(curl)) != CURLE_OK) {
-		fprintf(stderr, "curl_easy_perform(): Failed: %s\n", curl_easy_strerror(res));
+		fprintf(stderr, "curl_easy_perform() Failed: %s (%s)\n", curl_easy_strerror(res), get_url);
+		free(get_url);
+		return false;
 	}
 
 	free(get_url);
@@ -62,6 +64,7 @@ bool blacksail_announce_torrent(struct torrent *t)
 	struct bencode_dictionary *dict = bencode->type == BEN_DICTIONARY ? bencode->data : NULL;
 	if (dict == NULL) {
 		// there's nothing we can do
+		fprintf(stderr, "Tracker sent invalid BEncode response!\n");
 		return false;
 	}
 
@@ -76,6 +79,7 @@ bool blacksail_announce_torrent(struct torrent *t)
 
 	if (peerlist_size % 6 != 0) {
 		// ??? tracker bad (or ipv6)
+		fprintf(stderr, "IPv6 address present in peer list, expect errors!\n");
 		return false;
 	}
 
@@ -88,6 +92,7 @@ bool blacksail_announce_torrent(struct torrent *t)
             ((uint8_t *)peers)[6 * i + 1],
             ((uint8_t *)peers)[6 * i + 2],
             ((uint8_t *)peers)[6 * i + 3]) > 16) {
+			fprintf(stderr, "Failed to parse peer list!\n");
         	return false;
     	}
 
@@ -96,7 +101,7 @@ bool blacksail_announce_torrent(struct torrent *t)
 
 	t->min_interval = min_interval;
 	t->next_interval = interval;
-	build_handshake(t, "qwertyuiopasdfghjklz");
+	build_handshake(t, cfg.peer_id);
 
 	return true;
 }

@@ -6,7 +6,9 @@
 
 struct blacksail_config {
 	// client identification string
-	char client_id[21];
+	char client_id[20];
+
+	char peer_id[20];
 
 	// the port we will listen on
 	uint16_t port;
