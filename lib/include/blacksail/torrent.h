@@ -57,6 +57,7 @@ struct torrent {
 
 	size_t total_size;	
 	int block_size;
+	int block_count;
 	int piece_size;
 	int piece_count;
 
@@ -70,6 +71,6 @@ struct torrent {
 struct torrent *blacksail_add_torrentf(const char *torrent_filepath, const char *download_path);
 void blacksail_remove_torrent(struct torrent *t);
 
-bool blacksail_download_from_peer(struct torrent *t, int peer_idx);
+bool blacksail_download_piece_from_peer(struct torrent *t, int peer_idx, int piece_idx);
 
 #endif /* _BLACKSAIL_TORRENT_H */

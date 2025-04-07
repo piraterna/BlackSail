@@ -9,6 +9,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#define HANDSHAKE_LENGTH 68
+
 char *build_handshake(struct torrent *t, char *peer_id)
 {
 	// 1  byte:  protocol string length
@@ -16,12 +18,9 @@ char *build_handshake(struct torrent *t, char *peer_id)
 	// 8  bytes: reserved
 	// 20 bytes: torrent infohash
 	// 20 bytes: peer id
-	// 1  byte:  NULL char (will not be sent to the peer)
 	///
-	// This nicely rounds it to 69.
-	//
 
-	char *ret = malloc(69);
+	char *ret = malloc(HANDSHAKE_LENGTH);
 	if (!ret) {
 		return NULL;
 	}
@@ -36,9 +35,7 @@ char *build_handshake(struct torrent *t, char *peer_id)
 
 	memcpy(&ret[28], t->infohash, 20);
 	memcpy(&ret[58], peer_id, 20);
-	ret[68] = 0;
 
-	//snprintf(ret, 69, "%uBitTorrent protocol%s%s%.*s", 0x13, "\x0\x0\x0\x0\x0\x0\x0\x0", t->infohash, 20, peer_id);
 	return ret;
 }
 
@@ -73,9 +70,7 @@ bool send_handshake(struct peer *p, const char *handshake)
 	}
 	
 	fprintf(stderr, "connected!\nSending handshake... ");
-	// TODO: Handshake is currently always exactly 68 bytes (nice!),
-	//		 but it doesn't have to be hardcoded.
-	if (send(peer_socket, handshake, 68, 0) < 0){
+	if (send(peer_socket, handshake, HANDSHAKE_LENGTH, 0) < 0){
 		fprintf(stderr, "Failed to send handshake: %s!\n", strerror(errno));
 		close(peer_socket);
 		return false;
@@ -83,7 +78,7 @@ bool send_handshake(struct peer *p, const char *handshake)
 
 	fprintf(stderr, "done!\nWaiting for response...\n");
 
-	if (recv(peer_socket, peer_response, 1024, 0) <= 0){
+	if (recv(peer_socket, peer_response, HANDSHAKE_LENGTH, 0) <= 0){
 		fprintf(stderr, "Failed to receive handshake from peer: %s!\n", strerror(errno));
 		close(peer_socket);
 		return false;
@@ -108,7 +103,6 @@ bool send_handshake(struct peer *p, const char *handshake)
 	
 	p->socket_num = peer_socket;
 	p->peer_addr = peer_addr;
-	close(peer_socket);
 
 	return true;
 }
