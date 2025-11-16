@@ -34,7 +34,7 @@ char *build_handshake(struct torrent *t, char *peer_id)
 	}
 
 	memcpy(&ret[28], t->infohash, 20);
-	memcpy(&ret[58], peer_id, 20);
+	memcpy(&ret[48], peer_id, 20);
 
 	return ret;
 }

@@ -28,8 +28,10 @@ void blacksail_init(void)
 	buffer.buf = malloc(1);
 	buffer.size = 0;
 
+	srand(time(NULL));
+
 	for (int i = 0; i < 20; i++) {
-		cfg.peer_id[i] = peerid_charset[rand() / RAND_MAX * sizeof(peerid_charset)];
+		cfg.peer_id[i] = peerid_charset[rand() % 62];
 	}
 	strncpy(cfg.client_id, "BlackSailClient12345", 20);
 	cfg.port = 9831;
